@@ -2,7 +2,6 @@
 #include <vector>
 #include <iostream>
 
-
 int main() {
 	std::vector<char> Vec_A = { 'a','b','c' };
 	std::vector<char> Vec_B = { 'x','y','z' };

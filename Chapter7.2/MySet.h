@@ -25,9 +25,9 @@ public:
 	int find(T);
 	void clear();
 	int size();
-	Set<T>& operator=(const Set<T>& s);//���ظ�ֵ�����
-	Set<T>(const Set<T>& s);//�������캯��
-	friend std::ostream& operator<<<>(std::ostream& os, const Set<T>& s);//������������
+	Set<T>& operator=(const Set<T>& s);
+	Set<T>(const Set<T>& s);
+	friend std::ostream& operator<<<>(std::ostream& os, const Set<T>& s);
 	friend Set<T> common<>(const Set<T>& a, const Set<T>& b);
 	friend Set<T> sum<>(const Set<T>& a, const Set<T>& b);
 	friend void swap<>(Set<T>& a, Set<T>& b);
