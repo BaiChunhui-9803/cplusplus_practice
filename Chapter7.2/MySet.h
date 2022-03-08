@@ -35,7 +35,7 @@ public:
 
 template <typename T>
 Set<T>::Set(const std::vector<T>& list) {
-	for (auto it : list) {
+	for (auto &it : list) {
 		m_elems.push_back(it);
 	}
 }
