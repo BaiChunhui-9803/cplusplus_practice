@@ -8,6 +8,7 @@ int main() {
 	std::vector<char> Vec_B = { 'x','y','z' };
 	Set<char> Set_A(Vec_A), Set_B(Vec_B);
 	Set<char> Set_AA;
+	Set<char> Set_BB(Set_AA);
 	Set_AA = Set_A;
 	Set_A.erase('a');
 	Set_A.erase('b');

@@ -1,32 +1,43 @@
-#include "haffman.h"
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <map>
+//#include "treeprinter.h"
+#include "huffman.h"
 
-bool is_elem(const std::vector<char>& vec, const char& ch) {
-	for (auto it = vec.begin(); it != vec.end(); it++) {
-		if (*it == ch) return true;
-	}
-	return false;
-}
-
+typedef std::map<char, int> MAP_CHAR_WEIGHT;
+typedef std::pair<char, int> PAIR_CHAR_WEIGHT;
 int main() {
 
 	std::fstream fin;
 	fin.open("huffman.txt");
-	std::vector<char> charVector;
-
-
 	char ch;
+	MAP_CHAR_WEIGHT mapCharWeight;
 	while (fin && fin.get(ch)) {
-		if (is_elem(charVector, ch)) {
-
-
+		if (mapCharWeight.find(ch) == mapCharWeight.end())
+			mapCharWeight.insert(PAIR_CHAR_WEIGHT(ch, 1));
+		else {
+			++(mapCharWeight.find(ch)->second);
 		}
 	}
 	fin.close();
+	std::vector<Node<char>> vecNode;
+	for (MAP_CHAR_WEIGHT::iterator it = mapCharWeight.begin(); it != mapCharWeight.end(); ++it) {
+		Node<char> node(it->first, it->second);
+		vecNode.push_back(node);
+	}
 
+	insertionsort(vecNode);
 
-
-
+	HuffmanTree<char> huffmantree(vecNode);
+	TreePrinter<char> printer;
+	printer.compress(huffmantree);
+	std::cout << std::endl;
+	Node<char> node_serach = *(huffmantree.root()->left()->right());
+	std::cout << std::endl;
+	Node<char>* result=	huffmantree.search(node_serach, result);
+	std::cout << (*result).left()->data() << " " << (*result).weight() << std::endl;
+	printer.update(huffmantree);
+	printer.show(1);
 	return 0;
 }
