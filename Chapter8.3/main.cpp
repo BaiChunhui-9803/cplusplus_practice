@@ -8,7 +8,6 @@
 typedef std::map<char, int> MAP_CHAR_WEIGHT;
 typedef std::pair<char, int> PAIR_CHAR_WEIGHT;
 int main() {
-
 	std::fstream fin;
 	fin.open("huffman.txt");
 	char ch;
@@ -31,12 +30,16 @@ int main() {
 
 	HuffmanTree<char> huffmantree(vecNode);
 	TreePrinter<char> printer;
+	huffmantree.setId();
+	Node<char>* p = huffmantree.root();
+	visitNode<char>(p);
+	huffmantree.inOrder(p, visitNode<char>);
 	printer.compress(huffmantree);
 	std::cout << std::endl;
-	Node<char> node_serach = *(huffmantree.root()->left()->right());
-	std::cout << std::endl;
-	Node<char>* result=	huffmantree.search(node_serach, result);
-	std::cout << (*result).left()->data() << " " << (*result).weight() << std::endl;
+	//Node<char> node_serach = *(huffmantree.root()->left()->right());
+	//std::cout << std::endl;
+	//Node<char>* result=	huffmantree.search(node_serach, result);
+	//std::cout << (*result).left()->data() << " " << (*result).weight() << std::endl;
 	printer.update(huffmantree);
 	printer.show(1);
 	return 0;

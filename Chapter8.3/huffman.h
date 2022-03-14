@@ -6,6 +6,7 @@ template <typename T>
 struct node {
 	T m_elem;
 	int m_wt;
+	int m_id = 0;
 	int m_indexL, m_indexR;
 };
 
@@ -17,7 +18,7 @@ template <typename T>
 class TreePrinter {
 	friend class Node<T>;
 	friend class HuffmanTree<T>;
-	node<T> m_tree[MAX_SIZE] = { {0, 0, 1, 0} };
+	node<T> m_tree[MAX_SIZE] = { {0, 0, 0, 1, 0} };
 	int m_cnt = 0;
 
 public:
@@ -84,10 +85,20 @@ int TreePrinter<T>::find(Node<T>& node) {
 template<typename T>
 void TreePrinter<T>::update(HuffmanTree<T>& tree) {
 	for (int i = 1; i < MAX_SIZE; i++) {
-		Node<T> search(m_tree[i].m_elem, m_tree[i].m_wt);
+		Node<T> search(m_tree[i].m_elem, m_tree[i].m_wt, m_tree[i].m_id);
 		Node<T>* result = tree.search(search, result);
-		result->left() != nullptr ? m_tree[i].m_indexL = find(*(result->left())) : m_tree[i].m_indexL = 0;
-		result->right() != nullptr ? m_tree[i].m_indexR = find(*(result->right())) : m_tree[i].m_indexR = 0;
+		if (result->left() != nullptr) {
+			m_tree[i].m_indexL = find(*(result->left()));
+			m_tree[i].m_id = result->left()->id();
+		}
+		else m_tree[i].m_indexL = 0;
+		if (result->right() != nullptr) {
+			m_tree[i].m_indexR = find(*(result->right()));
+			m_tree[i].m_id = result->right()->id();
+		}
+		else m_tree[i].m_indexR = 0;
+		/*result->left() != nullptr ? m_tree[i].m_indexL = find(*(result->left())) : m_tree[i].m_indexL = 0;
+		result->right() != nullptr ? m_tree[i].m_indexR = find(*(result->right())) : m_tree[i].m_indexR = 0;*/
 		//if (result->left() != nullptr) m_tree[i].m_indexL = find(*(result->left()));
 		//else m_tree[i].m_indexL = 0;
 		//m_tree[i].m_indexR = find(*(result->right()));
@@ -112,16 +123,20 @@ class Node {
 private:
 	T m_data;
 	int m_weight = 0;
+	int m_id = 0;
 	Node* m_left = nullptr;
 	Node* m_right = nullptr;
 public:
 	Node() = default;
 	Node(const T& data) :m_data(data) {}
+	Node(const T& data, const int& weight, const int& id) :m_data(data), m_weight(weight), m_id(id) {}
 	Node(const T& data, const int& weight) :m_data(data), m_weight(weight) {}
 	T& data() { return m_data; }
 	const T& data() const { return m_data; }
 	int weight() { return m_weight; }
 	const int weight() const { return m_weight; }
+	int id() { return m_id; }
+	const int id() const { return m_id; }
 	Node* left() { return m_left; }
 	Node* right() { return m_right; }
 	Node<T>& operator=(const Node<T>& node) {
@@ -138,6 +153,8 @@ public:
 		else return false;
 	}
 };
+template <typename T>
+void visitNode(Node<T>*& node);
 template <typename T>
 void visit(T& value);
 
@@ -165,6 +182,7 @@ class HuffmanTree {
 private:
 	Node<T>* m_root = nullptr;
 	int m_number = 0;
+	int m_cnt = 0;
 public:
 	HuffmanTree() = default;
 	HuffmanTree(const HuffmanTree&) = delete;
@@ -176,14 +194,18 @@ public:
 	int getNumber() { return m_number; }
 	Node<T>* root() const { return m_root; }
 	void build(Node<T>& node) { Node<T>* q = &node; build_(m_root, q); }
+	void setId() { setID_(m_root); }
 	Node<T>* insert(const T& value) { return insert_(m_root, value); }//ËÑË÷Ê÷
 	Node<T>* search(const T& value) const { return search_(m_root, value); }//ËÑË÷Ê÷
 	Node<T>* search(const Node<T>& node, Node<T>*& result) { return search_(m_root, node, result); }//ËÑË÷Ê÷
-	void preOrder(Node<T>* p, void(*visit)(T&));//ËÑË÷Ê÷
-	void inOrder(Node<T>* p, void(*visit)(T&));//ËÑË÷Ê÷
+	void preOrder(Node<T>* p, void(*visitNode)(Node<T>*&));
+	void preOrder(Node<T>* p, void(*visit)(T&));
+	void inOrder(Node<T>* p, void(*visitNode)(Node<T>*&));
+	void inOrder(Node<T>* p, void(*visit)(T&));
 	void postOrder(Node<T>* p, void(*visit)(T&));//ËÑË÷Ê÷;
 private:
 	void build_(Node<T>*& p, Node<T>* q);
+	void setID_(Node<T>*& p);
 	Node<T>* insert_(Node<T>*& p, const T& value);//ËÑË÷Ê÷
 	Node<T>* search_(Node<T>* p, const T& value) const;//ËÑË÷Ê÷
 	Node<T>* search_(Node<T>* p, const Node<T>& node, Node<T>*& result);
@@ -205,17 +227,27 @@ HuffmanTree<T>::HuffmanTree(std::vector<Node<char>>& vec) {
 		insertionsort(vec);
 		++loop;
 	}
-	inOrder(&(vec.at(0)), visit<T>);
-	std::cout << std::endl;
+	//inOrder(&(vec.at(0)), visitNode<T>);
+	//std::cout << std::endl;
 	build(vec.at(0));
 
+}
+
+template<typename T>
+void HuffmanTree<T>::setID_(Node<T>*& p) {
+	if (p != nullptr) {
+		p->m_id = ++m_cnt;
+		setID_(p->m_left);
+		setID_(p->m_right);
+	}
+	return;
 }
 
 template <typename T>
 void HuffmanTree<T>::build_(Node<T>*& p, Node<T>* q) {
 	if (p == nullptr && q != nullptr) {
 		p = new(std::nothrow) Node<T>(q->m_data, q->m_weight);
-		std::cout << p->m_data << " " << p->m_weight << " ";
+		//std::cout << p->m_data << " " << p->m_weight << " " << p->m_id << std::endl;
 		build_(p->m_left, q->m_left);
 		build_(p->m_right, q->m_right);
 	}
@@ -271,11 +303,29 @@ Node<T>* HuffmanTree<T>::search_(Node<T>* p, const Node<T>& node, Node<T>*& resu
 }
 
 template <typename T>
+void HuffmanTree<T>::preOrder(Node<T>* p, void(*visitNode)(Node<T>*&)) {
+	if (p != nullptr) {
+		visitNode(p);
+		inOrder(p->m_left, visitNode);
+		inOrder(p->m_right, visitNode);
+	}
+}
+
+template <typename T>
 void HuffmanTree<T>::preOrder(Node<T>* p, void(*visit)(T&)) {
 	if (p != nullptr) {
 		visit(p->m_data);
 		preOrder(p->m_left, visit);
 		preOrder(p->m_right, visit);
+	}
+}
+
+template <typename T>
+void HuffmanTree<T>::inOrder(Node<T>* p, void(*visitNode)(Node<T>*&)) {
+	if (p != nullptr) {
+		inOrder(p->m_left, visitNode);
+		visitNode(p);
+		inOrder(p->m_right, visitNode);
 	}
 }
 
@@ -300,4 +350,9 @@ void HuffmanTree<T>::postOrder(Node<T>* p, void(*visit)(T&)) {
 template <typename T>
 void visit(T& value) {
 	std::cout << value << " ";
+}
+
+template <typename T>
+void visitNode(Node<T>*& node) {
+	std::cout << node->data() << " " << node->weight() << " " << node->id() << std::endl;
 }
