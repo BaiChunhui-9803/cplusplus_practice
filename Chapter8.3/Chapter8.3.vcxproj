@@ -140,7 +140,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="huffman.h" />
-    <ClInclude Include="treeprinter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

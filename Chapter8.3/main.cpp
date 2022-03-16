@@ -13,10 +13,12 @@ int main() {
 	char ch;
 	MAP_CHAR_WEIGHT mapCharWeight;
 	while (fin && fin.get(ch)) {
-		if (mapCharWeight.find(ch) == mapCharWeight.end())
-			mapCharWeight.insert(PAIR_CHAR_WEIGHT(ch, 1));
-		else {
-			++(mapCharWeight.find(ch)->second);
+		if (1/*ch != ' '*/) {
+			if (mapCharWeight.find(ch) == mapCharWeight.end())
+				mapCharWeight.insert(PAIR_CHAR_WEIGHT(ch, 1));
+			else {
+				++(mapCharWeight.find(ch)->second);
+			}
 		}
 	}
 	fin.close();
@@ -32,7 +34,6 @@ int main() {
 	TreePrinter<char> printer;
 	huffmantree.setId();
 	Node<char>* p = huffmantree.root();
-	visitNode<char>(p);
 	huffmantree.inOrder(p, visitNode<char>);
 	printer.compress(huffmantree);
 	std::cout << std::endl;
@@ -42,5 +43,31 @@ int main() {
 	//std::cout << (*result).left()->data() << " " << (*result).weight() << std::endl;
 	printer.update(huffmantree);
 	printer.show(1);
+	MAP_CHAR_STRING map;
+	huffmantree.encode(p, map);
+	map.erase('@');
+	huffmantree.printHuffmanCode(map);
+
+	std::ofstream fout;
+	fin.open("huffman.txt");
+	fout.open("huffman_encode.txt");
+	while (fin && fin.get(ch)) {
+		fout << map.find(ch)->second;
+	}
+	fin.close();
+	fout.close();
+	std::string code = "";
+	fin.open("huffman_encode.txt");
+	while (fin && fin.get(ch)) {
+		code += ch;
+		for (auto it = map.begin(); it != map.end(); it++) {
+			if (it->second == code) {
+				std::cout << it->first;
+				code = "";
+				break;
+			}
+		}
+	}
+	fin.close();
 	return 0;
 }

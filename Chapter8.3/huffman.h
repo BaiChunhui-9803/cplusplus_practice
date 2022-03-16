@@ -1,7 +1,15 @@
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 #define MAX_SIZE 100
+
+static bool FLAG = false;
+static std::vector<int> CNT_VEC;
+
+typedef std::map<char, std::string> MAP_CHAR_STRING;
+typedef std::pair<char, std::string> PAIR_CHAR_STRING;
+
 template <typename T>
 struct node {
 	T m_elem;
@@ -76,6 +84,9 @@ template<typename T>
 int TreePrinter<T>::find(Node<T>& node) {
 	for (int i = 1; i < MAX_SIZE; i++) {
 		if (m_tree[i].m_elem == node.data() && m_tree[i].m_wt == node.weight()) {
+			if (std::find(CNT_VEC.begin(), CNT_VEC.end(), m_tree[i].m_id) != CNT_VEC.end()) {
+				continue;
+			}
 			return i;
 		}
 	}
@@ -84,19 +95,31 @@ int TreePrinter<T>::find(Node<T>& node) {
 
 template<typename T>
 void TreePrinter<T>::update(HuffmanTree<T>& tree) {
+	//std::vector<int> cnt_vec;
+	//CNT_VEC.push_back(0);
 	for (int i = 1; i < MAX_SIZE; i++) {
 		Node<T> search(m_tree[i].m_elem, m_tree[i].m_wt, m_tree[i].m_id);
 		Node<T>* result = tree.search(search, result);
-		if (result->left() != nullptr) {
-			m_tree[i].m_indexL = find(*(result->left()));
-			m_tree[i].m_id = result->left()->id();
+		FLAG = false;
+		m_tree[i].m_id = result->id();
+		//std::vector<int>::iterator iter = std::find(cnt_vec.begin(), cnt_vec.end(), result->id());
+		//if (iter != cnt_vec.end()) {
+
+		//	continue;
+		//}
+		if (result->left() != nullptr && std::find(CNT_VEC.begin(), CNT_VEC.end(), result->left()->id()) == CNT_VEC.end()) {
+			m_tree[i].m_indexL = result->left()->id();
 		}
-		else m_tree[i].m_indexL = 0;
-		if (result->right() != nullptr) {
-			m_tree[i].m_indexR = find(*(result->right()));
-			m_tree[i].m_id = result->right()->id();
+		else {
+			m_tree[i].m_indexL = 0;
 		}
-		else m_tree[i].m_indexR = 0;
+		if (result->right() != nullptr && std::find(CNT_VEC.begin(), CNT_VEC.end(), result->right()->id()) == CNT_VEC.end()) {
+			m_tree[i].m_indexR = result->right()->id();
+		}
+		else {
+			m_tree[i].m_indexR = 0;
+		}
+		CNT_VEC.push_back(m_tree[i].m_id);
 		/*result->left() != nullptr ? m_tree[i].m_indexL = find(*(result->left())) : m_tree[i].m_indexL = 0;
 		result->right() != nullptr ? m_tree[i].m_indexR = find(*(result->right())) : m_tree[i].m_indexR = 0;*/
 		//if (result->left() != nullptr) m_tree[i].m_indexL = find(*(result->left()));
@@ -124,6 +147,7 @@ private:
 	T m_data;
 	int m_weight = 0;
 	int m_id = 0;
+	int m_code = -1;
 	Node* m_left = nullptr;
 	Node* m_right = nullptr;
 public:
@@ -143,6 +167,7 @@ public:
 		if (this != &node) {
 			this->m_data = node.m_data;
 			this->m_weight = node.m_weight;
+			this->m_id = node.m_id;
 			this->m_left = node.m_left;
 			this->m_right = node.m_right;
 		}
@@ -183,6 +208,7 @@ private:
 	Node<T>* m_root = nullptr;
 	int m_number = 0;
 	int m_cnt = 0;
+	bool m_flag = false;
 public:
 	HuffmanTree() = default;
 	HuffmanTree(const HuffmanTree&) = delete;
@@ -192,23 +218,38 @@ public:
 	Node<T>& build2Nodes(Node<T> &left, Node<T> &right);
 	void setNumber(const int& number) { m_number = number; }
 	int getNumber() { return m_number; }
+	bool getFlag() { return m_flag; }
 	Node<T>* root() const { return m_root; }
+	Node<T>* parent(Node<T>*& child, Node<T>*& parent, char& subtree) {
+		return parent_(m_root, child, parent, subtree);
+	}
 	void build(Node<T>& node) { Node<T>* q = &node; build_(m_root, q); }
 	void setId() { setID_(m_root); }
 	Node<T>* insert(const T& value) { return insert_(m_root, value); }//ËÑË÷Ê÷
-	Node<T>* search(const T& value) const { return search_(m_root, value); }//ËÑË÷Ê÷
-	Node<T>* search(const Node<T>& node, Node<T>*& result) { return search_(m_root, node, result); }//ËÑË÷Ê÷
+	Node<T>* search(const T& value, Node<T>*& result) {
+		return search_(m_root, value, result);
+	}//ËÑË÷Ê÷
+	Node<T>* search(const Node<T>& node, Node<T>*& result) {
+		return search_(m_root, node, result);
+	}//ËÑË÷Ê÷
+	Node<T>* search_withid(const Node<T>& node, Node<T>*& result) {
+		return search_withid_(m_root, node, result);
+	}//ËÑË÷Ê÷
 	void preOrder(Node<T>* p, void(*visitNode)(Node<T>*&));
 	void preOrder(Node<T>* p, void(*visit)(T&));
 	void inOrder(Node<T>* p, void(*visitNode)(Node<T>*&));
 	void inOrder(Node<T>* p, void(*visit)(T&));
 	void postOrder(Node<T>* p, void(*visit)(T&));//ËÑË÷Ê÷;
+	void encode(Node<T>* p, MAP_CHAR_STRING& map);
+	void printHuffmanCode(MAP_CHAR_STRING& map);
 private:
 	void build_(Node<T>*& p, Node<T>* q);
 	void setID_(Node<T>*& p);
 	Node<T>* insert_(Node<T>*& p, const T& value);//ËÑË÷Ê÷
-	Node<T>* search_(Node<T>* p, const T& value) const;//ËÑË÷Ê÷
+	Node<T>* search_(Node<T>* p, const T& value, Node<T>*& result);//ËÑË÷Ê÷
 	Node<T>* search_(Node<T>* p, const Node<T>& node, Node<T>*& result);
+	Node<T>* search_withid_(Node<T>* p, const Node<T>& node, Node<T>*& result);
+	Node<T>* parent_(Node<T>* p, Node<T>*& child, Node<T>*& parent, char& subtree);
 	void destroy(Node<T>* p);
 };
 
@@ -282,24 +323,66 @@ Node<T>* HuffmanTree<T>::insert_(Node<T>*& p, const T& value) {
 }
 
 template <typename T>
-Node<T>* HuffmanTree<T>::search_(Node<T>* p, const T& value) const {
-	while (p != nullptr && p->m_data != value) {
-		if (value < p->m_data) p = p->left;
-		else p = p->m_right;
+Node<T>* HuffmanTree<T>::search_(Node<T>* p, const T& value, Node<T>*& result) {
+	//while (p != nullptr && p->m_data != value) {
+	//	if (value < p->m_data) p = p->m_left;
+	//	else p = p->m_right;
+	//}
+	if (p != nullptr) {
+		if (p->data() == value) {
+			result = p;
+		}
+		search_(p->m_left, value, result);
+		search_(p->m_right, value, result);
 	}
-	return p;
+	return result;
 }
 
 template<typename T>
 Node<T>* HuffmanTree<T>::search_(Node<T>* p, const Node<T>& node, Node<T>*& result) {
 	if (p != nullptr) {
 		if (*p == node) {
-			result = p;
+			if (FLAG == false) {
+				FLAG = true;
+				result = p;
+			}
+			if (std::find(CNT_VEC.begin(), CNT_VEC.end(), p->id()) != CNT_VEC.end()) {
+				FLAG = false;
+			}
 		}
 		search_(p->left(), node, result);
 		search_(p->right(), node, result);
 	}
 	return result;
+}
+
+template<typename T>
+Node<T>* HuffmanTree<T>::search_withid_(Node<T>* p, const Node<T>& node, Node<T>*& result) {
+	if (p != nullptr) {
+		if (p->m_id == node.m_id) {
+			result = p;;
+		}
+		search_withid_(p->left(), node, result);
+		search_withid_(p->right(), node, result);
+	}
+	return result;
+}
+
+template<typename T>
+Node<T>* HuffmanTree<T>::parent_(Node<T>* p, Node<T>*& child, Node<T>*& parent, char& subtree) {
+	if (p != nullptr) {
+		if (p->m_left != nullptr && p->m_left->m_id == child->m_id) {
+			parent = p;
+			subtree = '0';
+		}
+		else if (p->m_right != nullptr && p->m_right->m_id == child->m_id) {
+			parent = p;
+			subtree = '1';
+		}
+		parent_(p->m_left, child, parent, subtree);
+		parent_(p->m_right, child, parent, subtree);
+	}
+	return parent;
 }
 
 template <typename T>
@@ -344,6 +427,50 @@ void HuffmanTree<T>::postOrder(Node<T>* p, void(*visit)(T&)) {
 		postOrder(p->m_left, visit);
 		postOrder(p->m_right, visit);
 		visit(p->m_data);
+	}
+}
+
+template<typename T>
+void HuffmanTree<T>::encode(Node<T>* p, MAP_CHAR_STRING& map) {
+	if (p != nullptr) {
+		if (p->m_left != nullptr) {
+			p->m_left->m_code = 0;
+			PAIR_CHAR_STRING pair(p->m_left->m_data, "");
+			map.insert(pair);
+		}
+		if (p->m_right != nullptr) {
+			p->m_right->m_code = 1;
+			PAIR_CHAR_STRING pair(p->m_right->m_data, "");
+			map.insert(pair);
+		}
+		encode(p->m_left, map);
+		encode(p->m_right, map);
+	}
+}
+//Node<T>* search(const Node<T>& node, Node<T>*& result);
+template<typename T>
+void HuffmanTree<T>::printHuffmanCode(MAP_CHAR_STRING& map) {
+	for (auto it = map.begin(); it != map.end(); it++) {
+		std::string code;
+		Node<T> child_node(it->first);
+		Node<T>* result_node;
+		Node<T>* begin_node;
+		result_node = search(child_node.data(), result_node);
+		begin_node = result_node;
+		while (1) {
+			result_node = search_withid(child_node, result_node);
+			//if (result_node == m_root) break;
+			Node<T>* parent_node;
+			char subtree;
+			parent(result_node, parent_node, subtree);
+			code += subtree;
+			if (parent_node == m_root) {
+				std::reverse(code.begin(), code.end());
+				break;
+			}
+			child_node = *parent_node;
+		}
+		map.find(begin_node->data())->second = code;
 	}
 }
 
