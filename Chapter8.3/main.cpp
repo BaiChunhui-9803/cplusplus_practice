@@ -8,12 +8,22 @@
 typedef std::map<char, int> MAP_CHAR_WEIGHT;
 typedef std::pair<char, int> PAIR_CHAR_WEIGHT;
 int main() {
+
+	//while (1) {
+	//	std::ifstream fin("huffman.txt");
+	//	std::string s;
+	//	while (fin >> s)
+	//	{
+	//		std::cout << s << std::endl;
+	//	}
+	//}
+
 	std::fstream fin;
 	fin.open("huffman.txt");
 	char ch;
 	MAP_CHAR_WEIGHT mapCharWeight;
 	while (fin && fin.get(ch)) {
-		if (1/*ch != ' '*/) {
+		if (ch != ' ') {
 			if (mapCharWeight.find(ch) == mapCharWeight.end())
 				mapCharWeight.insert(PAIR_CHAR_WEIGHT(ch, 1));
 			else {
@@ -52,22 +62,31 @@ int main() {
 	fin.open("huffman.txt");
 	fout.open("huffman_encode.txt");
 	while (fin && fin.get(ch)) {
-		fout << map.find(ch)->second;
+		if (ch != ' ') {
+			fout << map.find(ch)->second;
+		}
 	}
 	fin.close();
 	fout.close();
 	std::string code = "";
 	fin.open("huffman_encode.txt");
 	while (fin && fin.get(ch)) {
-		code += ch;
-		for (auto it = map.begin(); it != map.end(); it++) {
-			if (it->second == code) {
-				std::cout << it->first;
-				code = "";
-				break;
+		if (ch != ' ') {
+			code += ch;
+			for (auto it = map.begin(); it != map.end(); it++) {
+				if (it->second == code) {
+					std::cout << it->first;
+					code = "";
+					break;
+				}
 			}
 		}
 	}
 	fin.close();
+	std::cout << std::endl;
+	for (auto it = map.begin(); it != map.end(); it++) {
+		std::cout << "[" << it->first << "]:" << it->second << std::endl;
+	}
+
 	return 0;
 }
